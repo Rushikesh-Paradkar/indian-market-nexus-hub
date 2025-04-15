@@ -1,13 +1,35 @@
 
 import { products as mockProducts, categories } from '@/data/mockData';
 import { Product } from '../models/Product';
+import type { Product as ProductType } from '@/types';
 
 export class ProductService {
   private products: Product[];
   
   constructor() {
     // Initialize with mock data
-    this.products = mockProducts.map(product => new Product(product));
+    this.products = mockProducts.map(product => {
+      // Convert the Product interface type from mockData to our Product class
+      return new Product({
+        id: product.id,
+        name: product.name,
+        slug: product.slug,
+        description: product.description,
+        price: product.price,
+        originalPrice: product.originalPrice,
+        currency: product.currency,
+        images: product.images,
+        rating: product.rating,
+        reviewCount: product.reviewCount,
+        stock: product.stock,
+        categoryId: product.categoryId,
+        sellerId: product.sellerId,
+        sellerName: product.sellerName,
+        features: product.features,
+        specifications: product.specifications,
+        createdAt: product.createdAt
+      });
+    });
   }
   
   // Get all products
