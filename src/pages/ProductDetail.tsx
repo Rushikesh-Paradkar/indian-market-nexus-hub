@@ -1,7 +1,6 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getProductById, getRelatedProducts } from '@/data/mockData';
 import Layout from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -9,14 +8,29 @@ import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Heart, Share2, ShoppingCart, Star, Truck } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
+import { ProductService } from '@/services/ProductService';
+import { Product } from '@/models/Product';
 
 export default function ProductDetail() {
   const { slug } = useParams<{ slug: string }>();
-  const product = getProductById(slug ? slug : '');
-  const relatedProducts = product ? getRelatedProducts(product, 4) : [];
+  const [product, setProduct] = useState<Product | null>(null);
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
+  
+  // Initialize service
+  const productService = new ProductService();
+  
+  useEffect(() => {
+    if (slug) {
+      const foundProduct = productService.getProductBySlug(slug);
+      if (foundProduct) {
+        setProduct(foundProduct);
+        setRelatedProducts(productService.getRelatedProducts(foundProduct, 4));
+      }
+    }
+  }, [slug]);
 
   if (!product) {
     return (
@@ -33,7 +47,7 @@ export default function ProductDetail() {
   }
 
   const handleAddToCart = () => {
-    addItem(product, quantity);
+    addItem(product as any, quantity); // We'll update CartContext later to use our models
   };
 
   return (
@@ -98,7 +112,7 @@ export default function ProductDetail() {
               </span>
               <span className="text-sm text-muted-foreground">•</span>
               <span className="text-sm font-medium text-primary">
-                In Stock: {product.stock}
+                {product.isInStock() ? `In Stock: ${product.stock}` : 'Out of Stock'}
               </span>
             </div>
             
@@ -106,13 +120,13 @@ export default function ProductDetail() {
             <div className="mb-6">
               <div className="flex items-end gap-2">
                 <span className="text-3xl font-bold">{product.currency}{product.price.toLocaleString()}</span>
-                {product.originalPrice && (
+                {product.isOnSale() && (
                   <>
                     <span className="text-lg line-through text-muted-foreground">
-                      {product.currency}{product.originalPrice.toLocaleString()}
+                      {product.currency}{product.originalPrice!.toLocaleString()}
                     </span>
                     <Badge variant="secondary">
-                      {Math.round((1 - product.price / product.originalPrice) * 100)}% OFF
+                      {product.calculateDiscountPercentage()}% OFF
                     </Badge>
                   </>
                 )}
@@ -155,9 +169,9 @@ export default function ProductDetail() {
                   +
                 </Button>
               </div>
-              <Button onClick={handleAddToCart} className="flex-1">
+              <Button onClick={handleAddToCart} disabled={!product.isInStock()} className="flex-1">
                 <ShoppingCart className="w-5 h-5 mr-2" />
-                Add to Cart
+                {product.isInStock() ? 'Add to Cart' : 'Out of Stock'}
               </Button>
               <Button variant="outline" size="icon">
                 <Heart className="w-5 h-5" />
