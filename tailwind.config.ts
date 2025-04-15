@@ -52,6 +52,12 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				// Indian market colors
+				'indian-orange': '#FF5722',
+				'indian-blue': '#1A237E',
+				'indian-yellow': '#FFC107',
+				'indian-green': '#388E3C',
+				'indian-red': '#D32F2F',
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
