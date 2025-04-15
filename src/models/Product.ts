@@ -19,7 +19,25 @@ export class Product extends BaseModel {
   features?: string[];
   specifications?: Record<string, string>;
 
-  constructor(productData: Omit<Product, 'validate' | 'toJSON' | 'calculateDiscount'>) {
+  constructor(productData: {
+    id: string;
+    name: string;
+    slug: string;
+    description: string;
+    price: number;
+    originalPrice?: number;
+    currency: string;
+    images: string[];
+    rating: number;
+    reviewCount: number;
+    stock: number;
+    categoryId: string;
+    sellerId: string;
+    sellerName: string;
+    features?: string[];
+    specifications?: Record<string, string>;
+    createdAt?: string;
+  }) {
     super(productData.id, productData.createdAt);
     this.name = productData.name;
     this.slug = productData.slug;
