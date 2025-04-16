@@ -10,6 +10,7 @@ import { Heart, Share2, ShoppingCart, Star, Truck } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import { ProductService } from '@/services/ProductService';
 import { Product } from '@/models/Product';
+import { useToast } from '@/hooks/use-toast';
 
 export default function ProductDetail() {
   const { slug } = useParams<{ slug: string }>();
@@ -18,6 +19,7 @@ export default function ProductDetail() {
   const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
+  const { toast } = useToast();
   
   // Initialize service
   const productService = new ProductService();
@@ -47,7 +49,34 @@ export default function ProductDetail() {
   }
 
   const handleAddToCart = () => {
-    addItem(product as any, quantity); // We'll update CartContext later to use our models
+    // Convert model Product to the type Product expected by addItem
+    const productForCart = {
+      id: product.id,
+      name: product.name,
+      slug: product.slug,
+      description: product.description,
+      price: product.price,
+      originalPrice: product.originalPrice,
+      currency: product.currency,
+      images: product.images,
+      rating: product.rating,
+      reviewCount: product.reviewCount,
+      stock: product.stock,
+      categoryId: product.categoryId,
+      sellerId: product.sellerId,
+      sellerName: product.sellerName,
+      features: product.features,
+      specifications: product.specifications,
+      createdAt: product.createdAt
+    };
+    
+    addItem(productForCart, quantity);
+    
+    // Show a toast notification
+    toast({
+      title: "Added to Cart",
+      description: `${quantity} × ${product.name} has been added to your cart`,
+    });
   };
 
   return (

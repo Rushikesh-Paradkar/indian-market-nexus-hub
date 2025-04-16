@@ -1,10 +1,14 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { CartItem, Product } from '@/types';
+import { CartItem, Product as ProductType } from '@/types';
+import { Product as ProductModel } from '@/models/Product';
+
+// Define a type that can be either one of our Product types
+type AnyProduct = ProductType | ProductModel;
 
 interface CartContextType {
   items: CartItem[];
-  addItem: (product: Product, quantity: number) => void;
+  addItem: (product: AnyProduct, quantity: number) => void;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
@@ -35,7 +39,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('cart', JSON.stringify(items));
   }, [items]);
 
-  const addItem = (product: Product, quantity: number) => {
+  const addItem = (product: AnyProduct, quantity: number) => {
     setItems(prevItems => {
       const existingItem = prevItems.find(item => item.productId === product.id);
       
@@ -46,7 +50,28 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
             : item
         );
       } else {
-        return [...prevItems, { productId: product.id, quantity, product }];
+        // Convert any product to the format expected by CartItem
+        const productForCart: ProductType = {
+          id: product.id,
+          name: product.name,
+          slug: product.slug,
+          description: product.description,
+          price: product.price,
+          originalPrice: product.originalPrice,
+          currency: product.currency,
+          images: product.images,
+          rating: product.rating,
+          reviewCount: product.reviewCount,
+          stock: product.stock,
+          categoryId: product.categoryId,
+          sellerId: product.sellerId,
+          sellerName: product.sellerName,
+          features: product.features,
+          specifications: product.specifications,
+          createdAt: product.createdAt?.toString() || new Date().toISOString()
+        };
+        
+        return [...prevItems, { productId: product.id, quantity, product: productForCart }];
       }
     });
   };
